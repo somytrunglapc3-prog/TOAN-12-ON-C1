@@ -1,0 +1,1159 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ÔN TẬP CHƯƠNG I: ỨNG DỤNG ĐẠO HÀM ĐỂ KHẢO SÁT VÀ VẼ ĐỒ THỊ HÀM SỐ</title>
+    
+    <script>
+        window.MathJax = { 
+            tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], processEscapes: true },
+            svg: { fontCache: 'global' },
+            startup: { typeset: true }
+        };
+    </script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+ 
+    <style>
+        :root {
+            --primary: #0056b3; --secondary: #eef2f5; --text: #333;
+            --correct: #d4edda; --correct-border: #c3e6cb;
+            --incorrect: #f8d7da; --incorrect-border: #f5c6cb;
+            --graph-blue: #0056b3; --graph-red: #dc3545; --font-size: 14pt;
+            --illu-size: 270px; 
+        }
+        * { box-sizing: border-box; } 
+        body { font-family: 'Segoe UI', sans-serif; font-size: var(--font-size); line-height: 1.6; color: var(--text); max-width: 980px; margin: 0 auto; padding: 10px 20px; background-color: #f4f7f6; transition: max-width 0.3s ease, font-size 0.2s ease; overflow-x: hidden; }
+        h1, h2, h3, h4 { color: var(--primary); margin-top: 0; }
+        .box { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; width: 100%;}
+        .theory-box { border-left: 5px solid var(--primary); }
+        .theory-section { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; margin-bottom: 22px; border-bottom: 1px dashed #ccc; padding-bottom: 22px;}
+        .theory-section:last-child { border-bottom: none; }
+        .theory-content { flex: 1 1 55%; min-width: 280px; padding-right: 18px; }
+        .theory-illu { flex: 0 0 var(--illu-size); width: var(--illu-size); text-align: center; background: #fafbfc; border-radius: 10px; padding: 10px; border: 1px solid #d0d7de; transition: all 0.3s ease; box-shadow: inset 0 1px 3px rgba(0,0,0,0.05); }
+        .theory-illu canvas { width: 100%; height: auto; aspect-ratio: 1 / 1; cursor: grab; border-radius: 6px; background: #ffffff; border: 1px solid #eee; touch-action: none; }
+        .theory-illu canvas:active { cursor: grabbing; }
+        .theory-illu span { display: block; font-size: 0.8em; color: #555; font-style: italic; margin-top: 6px; }
+        .mini-3d-bar { display: flex; justify-content: center; gap: 5px; margin-top: 6px; flex-wrap: wrap; }
+        .mini-btn { background: #e9ecef; color: #333; border: 1px solid #ced4da; padding: 4px 9px; font-size: 0.75em; border-radius: 4px; cursor: pointer; font-weight: 600; }
+        .mini-btn:hover { background: var(--primary); color: #fff; border-color: var(--primary); transform: none; }
+        .mini-btn.active { background: #28a745; color: white; border-color: #28a745; }
+
+        /* KHUNG MÔ PHỎNG ĐỒ THỊ TƯƠNG TÁC TRUNG TÂM */
+        .sim3d-wrapper { background: linear-gradient(135deg, #f8fbff 0%, #eef5ff 100%); border: 2px solid var(--primary); border-radius: 10px; padding: 15px; margin: 15px 0 25px 0; }
+        .sim3d-grid { display: flex; flex-wrap: wrap; gap: 15px; align-items: stretch; }
+        .sim3d-stage { flex: 1 1 420px; background: #fff; border-radius: 8px; border: 1px solid #ccd6e0; padding: 10px; text-align: center; position: relative; }
+        .sim3d-stage canvas { width: 100%; max-width: 500px; height: auto; aspect-ratio: 4 / 3; cursor: grab; touch-action: none; border: 1px solid #eef2f5; border-radius: 6px; }
+        .sim3d-stage canvas:active { cursor: grabbing; }
+        .sim3d-controls { flex: 1 1 280px; background: #fff; border-radius: 8px; border: 1px solid #ccd6e0; padding: 15px; display: flex; flex-direction: column; justify-content: space-between; font-size: 0.9em; }
+        .mode-btn-group { display: flex; flex-direction: column; gap: 7px; margin-bottom: 10px; }
+        .mode-btn { padding: 8px 10px; font-size: 0.9em; background: #eef2f5; color: #222; border: 1px solid #ced4da; border-radius: 6px; cursor: pointer; text-align: left; font-weight: bold; transition: 0.2s; }
+        .mode-btn:hover { background: #dce4ec; transform: none; }
+        .mode-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+        .view-btn-group { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+        .view-btn { flex: 1 1 45%; padding: 6px 8px; font-size: 0.85em; background: #0056b3; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        .view-btn:hover { background: #003d82; }
+        .view-btn.toggle-rot { background: #6c757d; flex: 1 1 100%; font-size: 0.95em; }
+        .view-btn.toggle-rot.running { background: #28a745; }
+        .legend-bar { display: flex; justify-content: center; gap: 15px; font-size: 0.82em; color: #444; margin-top: 6px; padding-top: 6px; border-top: 1px dashed #e0e0e0; flex-wrap: wrap; }
+
+        .control-panel { background: var(--secondary); display: flex; gap: 8px; flex-wrap: wrap; align-items: center; justify-content: center; position: sticky; top: 0; z-index: 9999; box-shadow: 0 6px 10px rgba(0,0,0,0.15); border: 2px solid var(--primary); padding: 8px 10px !important; font-size: 0.85em; }
+        .control-panel label { font-weight: bold; white-space: nowrap; }
+        .control-panel input { width: 45px; padding: 3px; text-align: center; border: 1px solid #ccc; border-radius: 4px; font-size: inherit;}
+        .control-panel button { padding: 5px 10px; font-size: inherit; } 
+        button { background-color: var(--primary); color: white; border: none; padding: 10px 18px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: background 0.3s; font-size: inherit; }
+        button:hover { background-color: #004494; transform: translateY(-1px); }
+        button.submit-btn { background-color: #28a745; font-size: 1.1em; padding: 12px 25px; margin-top: 15px; width: 100%;}
+        button.submit-btn:hover { background-color: #218838; }
+        .font-controls { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 4px; margin-right: 5px; border-right: 2px solid #ccc; padding-right: 10px; }
+        button.font-btn { background-color: #6c757d; padding: 4px 8px; }
+        button.font-btn:hover { background-color: #5a6268; }
+        .scroll-area { padding: 5px; }
+        .table-responsive { width: 100%; overflow-x: auto; margin: 10px 0; display: block; -webkit-overflow-scrolling: touch; }
+        .question { margin-top: 15px; padding: 15px; border: 1px solid #e2e2e2; border-radius: 8px; background: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.02);}
+        .options { list-style-type: none; padding-left: 0; margin-top: 10px; }
+        .options li { padding: 8px; margin-bottom: 5px; border-radius: 4px; border: 1px solid transparent; transition: 0.2s;}
+        .options label { cursor: pointer; display: flex; align-items: center; gap: 10px; width: 100%;}
+        input[type="radio"] { width: 1.5em; height: 1.5em; cursor: pointer; accent-color: var(--primary); flex-shrink: 0; }
+        .tf-table { width: 100%; border-collapse: collapse; min-width: 500px; text-align: center; }
+        .tf-table th, .tf-table td { border: 1px solid #ddd; padding: 10px; vertical-align: middle; }
+        .tf-table td:first-child { text-align: left; }
+        .short-ans-input { padding: 6px; width: 120px; text-align: center; border: 1px solid #ccc; border-radius: 4px; font-weight: bold; font-size: inherit;}
+        .is-correct { background-color: var(--correct) !important; border-color: var(--correct-border) !important; }
+        .is-incorrect { background-color: var(--incorrect) !important; border-color: #f5c6cb !important; }
+        .feedback { font-weight: bold; margin-left: 10px; font-size: 0.9em; }
+        .feedback.text-correct { color: #155724; }
+        .feedback.text-incorrect { color: #721c24; }
+        .advice-box { margin-top: 20px; padding: 15px; border-radius: 8px; text-align: center; font-weight: bold; font-size: 1.1em; display: none; }
+        .tip-box { padding: 12px 15px; margin: 12px 0; border-radius: 6px; border-left: 5px solid; font-size: 0.95em; }
+        .tip-yellow { background: #fff3cd; border-color: #ffc107; color: #856404; }
+        .tip-green { background: #d4edda; border-color: #28a745; color: #155724; }
+        .tip-blue { background: #e7f3fe; border-color: #0056b3; color: #004085; }
+        .tip-red { background: #f8d7da; border-color: #dc3545; color: #721c24; }
+        .tip-title { font-weight: bold; text-transform: uppercase; margin-bottom: 5px; display: block;}
+        ul.theory-list { margin: 5px 0 10px 20px; padding: 0; }
+        ul.theory-list li { margin-bottom: 6px; }
+        @media (max-width: 900px) {
+            .control-panel { flex-direction: row; gap: 6px; padding: 6px !important; }
+            .font-controls { border-right: none; border-bottom: 1px solid #ccc; padding-bottom: 6px; margin-bottom: 2px; width: 100%; justify-content: center; margin-right: 0;}
+            .box { padding: 10px; }
+            body { padding: 2px; }
+            .theory-illu { flex: 1 1 100%; max-width: var(--illu-size); margin: 15px auto 0 auto; }
+            .theory-content { padding-right: 0; min-width: 100%; }
+            .tf-table { min-width: 100%; font-size: 0.9em; } 
+            .question { overflow-x: auto; -webkit-overflow-scrolling: touch; padding: 10px; } 
+        }
+    </style>
+</head>
+<body>
+ 
+    <div class="box control-panel">
+        <div class="font-controls">
+            <button class="font-btn" onclick="toggleFullScreen()" title="Bật/Tắt chế độ Toàn Màn Hình (F11)">📺 Toàn màn hình</button>
+            <button class="font-btn" onclick="toggleWidth()" title="Phóng to/Thu nhỏ khung viền trang web">↔️ Đổi khung</button>
+            <span style="margin: 0 5px; color: #ccc;">|</span>
+            <label>Cỡ chữ:</label>
+            <button class="font-btn" onclick="changeFontSize(-2)">A-</button>
+            <span id="font-size-display" style="font-weight: bold; width: 40px; text-align: center;">14pt</span>
+            <button class="font-btn" onclick="changeFontSize(2)">A+</button>
+            <span style="margin: 0 5px; color: #ccc;">|</span>
+            <label>Cỡ hình:</label>
+            <button class="font-btn" onclick="changeIlluSize(-30)">-</button>
+            <span id="illu-size-display" style="font-weight: bold; width: 48px; text-align: center;">270px</span>
+            <button class="font-btn" onclick="changeIlluSize(30)">+</button>
+        </div>
+        <label>Dạng 1 (4 PA): <input type="number" id="numType1" value="6" min="0" max="15"></label>
+        <label>Dạng 2 (Đ/S): <input type="number" id="numType2" value="4" min="0" max="15"></label>
+        <label>Dạng 3 (Ngắn): <input type="number" id="numType3" value="4" min="0" max="15"></label>
+        <button onclick="generateTest()">TẠO ĐỀ NGẪU NHIÊN SIÊU ĐA DẠNG</button>
+    </div>
+ 
+    <div class="box theory-box">
+        <h1 style="margin-bottom: 5px;">ÔN TẬP CHƯƠNG I: ỨNG DỤNG ĐẠO HÀM ĐỂ KHẢO SÁT VÀ VẼ ĐỒ THỊ HÀM SỐ</h1>
+        <div style="text-align: right; font-style: italic; color: var(--primary); font-weight: bold; border-bottom: 1px dashed #ccc; padding-bottom: 15px; margin-bottom: 15px;">
+            Giáo viên: NGUYỄN VĂN SÔ
+        </div>
+
+        <!-- ================= PHÒNG THÍ NGHIỆM ĐỒ THỊ 2D TƯƠNG TÁC TRUNG TÂM ================= -->
+        <div class="sim3d-wrapper">
+            <h3 style="margin-bottom: 6px; text-align: center; color: #004085;">📈 PHÒNG THÍ NGHIỆM ĐỒ THỊ HÀM SỐ & TIẾP TUYẾN TƯƠNG TÁC TRỰC QUAN</h3>
+            <p style="text-align: center; font-size: 0.88em; color: #555; margin-top: 0; margin-bottom: 12px;">
+                <i>💡 Kéo chuột trên mặt phẳng tọa độ để di chuyển góc nhìn hoặc bật <b>Chạy điểm $M(x_0; y_0)$</b> để quan sát sự thay đổi dấu của đạo hàm $y'=f'(x_0)$, cực trị và đường tiệm cận!</i>
+            </p>
+            <div class="sim3d-grid">
+                <div class="sim3d-stage">
+                    <canvas id="mainGraphCanvas" width="520" height="390"></canvas>
+                    <div id="mainGraphCaption" style="font-weight: bold; color: var(--primary); font-size: 0.92em; margin-top: 4px;">
+                        Hàm số bậc ba $y = x^3 - 3x$: Cực đại tại $(-1; 2)$, Cực tiểu tại $(1; -2)$, Tâm đối xứng $I(0; 0)$
+                    </div>
+                    <div class="legend-bar">
+                        <span style="color:#0056b3;">━━━ <b>Đồ thị $(C)$</b></span>
+                        <span style="color:#dc3545;">╌╌╌ <b>Đường tiệm cận / Gióng</b></span>
+                        <span style="color:#28a745;">━━━ <b>Tiếp tuyến tại $M$</b></span>
+                    </div>
+                </div>
+                <div class="sim3d-controls">
+                    <div>
+                        <div style="font-weight: bold; color: var(--primary); border-bottom: 1px solid #eee; padding-bottom: 5px; margin-bottom: 8px;">
+                            📊 Chọn dạng đồ thị hàm số SGK:
+                        </div>
+                        <div class="mode-btn-group">
+                            <button class="mode-btn active" id="modeBtn0" onclick="setMainMode(0)">1. Hàm bậc ba: $y = x^3 - 3x$ (2 cực trị)</button>
+                            <button class="mode-btn" id="modeBtn1" onclick="setMainMode(1)">2. Hàm phân thức: $y = \dfrac{x - 1}{x + 1}$ (TCĐ, TCN)</button>
+                            <button class="mode-btn" id="modeBtn2" onclick="setMainMode(2)">3. Hàm phân thức: $y = \dfrac{x^2 - x + 1}{x - 1}$ (TCĐ, TCX)</button>
+                            <button class="mode-btn" id="modeBtn3" onclick="setMainMode(3)">4. GTLN & GTNN: $y = -x^3 + 3x + 1$ trên $[-2; 2]$</button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div style="font-weight: bold; color: var(--primary); font-size: 0.9em;">🔄 Điều khiển mô phỏng & Khung nhìn:</div>
+                        <div class="view-btn-group">
+                            <button class="view-btn toggle-rot" id="btnMainAutoRot" onclick="toggleMainAnim()">▶️ Bật chạy điểm $M(x_0; y_0)$ & Tiếp tuyến</button>
+                            <button class="view-btn" onclick="resetMainView()">📐 Khung nhìn chuẩn</button>
+                            <button class="view-btn" onclick="zoomMainGraph(1.2)">🔍 Phóng to (+)</button>
+                            <button class="view-btn" onclick="zoomMainGraph(0.83)">🔎 Thu nhỏ (-)</button>
+                            <button class="view-btn" onclick="stepPointM(0.35)">➡️ Dịch điểm $M$</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+ 
+        <!-- ================= MỤC 1: TÍNH ĐƠN ĐIỆU VÀ CỰC TRỊ CỦA HÀM SỐ ================= -->
+        <div class="theory-section">
+            <div class="theory-content">
+                <h3>1. Tính Đơn Điệu Và Cực Trị Của Hàm Số</h3>
+                <p><b>a) Mối liên hệ giữa dấu của đạo hàm và tính đơn điệu:</b></p>
+                <p>Cho hàm số $y = f(x)$ có đạo hàm trên khoảng $K$:</p>
+                <ul class="theory-list">
+                    <li>Nếu $f'(x) > 0$ với mọi $x \in K$ thì hàm số $f(x)$ <b>đồng biến</b> trên khoảng $K$.</li>
+                    <li>Nếu $f'(x) < 0$ với mọi $x \in K$ thì hàm số $f(x)$ <b>nghịch biến</b> trên khoảng $K$.</li>
+                    <li>Nếu $f'(x) \ge 0$ (hoặc $f'(x) \le 0$) với mọi $x \in K$ và dấu "$=$" chỉ xảy ra tại một số <b>hữu hạn điểm</b> trên $K$ thì hàm số vẫn <b>đồng biến</b> (hoặc <b>nghịch biến</b>) trên khoảng $K$.</li>
+                </ul>
+
+                <div class="tip-box tip-yellow">
+                    <span class="tip-title">📌 Quy tắc tìm Cực trị của hàm số:</span>
+                    • Giả sử hàm số $y=f(x)$ liên tục trên khoảng $(a;b)$ chứa $x_0$ và có đạo hàm trên các khoảng $(a;x_0)$ và $(x_0;b)$:<br>
+                      &nbsp;&nbsp;+ Nếu $f'(x)$ đổi dấu từ <b>dương ($+$) sang âm ($-$)</b> khi $x$ đi qua $x_0$ thì $x_0$ là một <b>điểm cực đại</b> của hàm số.<br>
+                      &nbsp;&nbsp;+ Nếu $f'(x)$ đổi dấu từ <b>âm ($-$) sang dương ($+$)</b> khi $x$ đi qua $x_0$ thì $x_0$ là một <b>điểm cực tiểu</b> của hàm số.<br>
+                    • <b>Phân biệt thuật ngữ:</b> Điểm cực trị của hàm số là $x_0$; Giá trị cực trị (cực đại/cực tiểu) của hàm số là $y_0 = f(x_0)$; Điểm cực trị của đồ thị hàm số là $M(x_0; f(x_0))$.
+                </div>
+
+                <div class="tip-box tip-green">
+                    <span class="tip-title">💡 Điều kiện có cực trị của hàm bậc ba $y = ax^3 + bx^2 + cx + d$ ($a \neq 0$):</span>
+                    • Ta có $y' = 3ax^2 + 2bx + c$, biệt thức $\Delta' = b^2 - 3ac$.<br>
+                    • Hàm số <b>có 2 điểm cực trị</b> $\Longleftrightarrow \Delta' = b^2 - 3ac > 0$.<br>
+                    • Hàm số <b>không có cực trị</b> (luôn đồng biến hoặc luôn nghịch biến trên $\mathbb{R}$) $\Longleftrightarrow \Delta' = b^2 - 3ac \le 0$.
+                </div>
+            </div>
+            <div class="theory-illu">
+                <canvas id="canvasT1" width="270" height="270"></canvas>
+                <div class="mini-3d-bar">
+                    <button class="mini-btn" id="btnRotT1" onclick="toggleMiniAnim(0, 'btnRotT1')">▶️ Chạy tiếp tuyến</button>
+                    <button class="mini-btn" onclick="resetMiniGraph(0)">📐 Khung chuẩn</button>
+                </div>
+                <span>Đồ thị $y = x^3 - 3x$: Đạo hàm đổi dấu tại $x = -1$ (CĐ) và $x = 1$ (CT)</span>
+            </div>
+        </div>
+
+        <!-- ================= MỤC 2: GIÁ TRỊ LỚN NHẤT VÀ GIÁ TRỊ NHỎ NHẤT ================= -->
+        <div class="theory-section">
+            <div class="theory-content">
+                <h3>2. Giá Trị Lớn Nhất Và Giá Trị Nhỏ Nhất Của Hàm Số</h3>
+                <p><b>a) Định nghĩa GTLN ($\max$) và GTNN ($\min$) trên tập $D$:</b></p>
+                <p>Cho hàm số $y = f(x)$ xác định trên tập $D$:</p>
+                <ul class="theory-list">
+                    <li>Số $M$ gọi là <b>giá trị lớn nhất</b> của hàm số $y=f(x)$ trên $D$ nếu $f(x) \le M, \forall x \in D$ và $\exists x_0 \in D$ sao cho $f(x_0) = M$. Kí hiệu: $M = \max\limits_{D} f(x)$.</li>
+                    <li>Số $m$ gọi là <b>giá trị nhỏ nhất</b> của hàm số $y=f(x)$ trên $D$ nếu $f(x) \ge m, \forall x \in D$ và $\exists x_0 \in D$ sao cho $f(x_0) = m$. Kí hiệu: $m = \min\limits_{D} f(x)$.</li>
+                </ul>
+
+                <div class="tip-box tip-blue">
+                    <span class="tip-title">🔍 Quy tắc tìm GTLN, GTNN của hàm số liên tục trên đoạn $[a; b]$:</span>
+                    • <b>Bước 1:</b> Tìm các điểm $x_1, x_2, \dots, x_n \in (a; b)$ tại đó $f'(x) = 0$ hoặc $f'(x)$ không xác định.<br>
+                    • <b>Bước 2:</b> Tính các giá trị $f(a), f(x_1), f(x_2), \dots, f(x_n), f(b)$.<br>
+                    • <b>Bước 3:</b> Số lớn nhất trong các giá trị đó chính là $\max\limits_{[a;b]} f(x)$ và số nhỏ nhất chính là $\min\limits_{[a;b]} f(x)$.<br>
+                    • <b>Lưu ý:</b> Nếu hàm số $y=f(x)$ đơn điệu trên $[a;b]$ thì $\max$ và $\min$ luôn đạt tại hai đầu mút $a$ và $b$.
+                </div>
+            </div>
+            <div class="theory-illu">
+                <canvas id="canvasT2" width="270" height="270"></canvas>
+                <div class="mini-3d-bar">
+                    <button class="mini-btn" id="btnRotT2" onclick="toggleMiniAnim(1, 'btnRotT2')">▶️ Chạy điểm M</button>
+                    <button class="mini-btn" onclick="resetMiniGraph(1)">📐 Khung chuẩn</button>
+                </div>
+                <span>GTLN & GTNN của $y = -x^3 + 3x + 1$ trên đoạn $[-2; 2]$: $\max = 3$, $\min = -1$</span>
+            </div>
+        </div>
+
+        <!-- ================= MỤC 3: ĐƯỜNG TIỆM CẬN CỦA ĐỒ THỊ HÀM SỐ ================= -->
+        <div class="theory-section">
+            <div class="theory-content">
+                <h3>3. Đường Tiệm Cận Của Đồ Thị Hàm Số</h3>
+                <p><b>a) Ba loại đường tiệm cận của đồ thị hàm số $y = f(x)$:</b></p>
+                <ul class="theory-list">
+                    <li><b>Tiệm cận ngang (TCN):</b> Đường thẳng $y = y_0$ là TCN của đồ thị nếu $\lim\limits_{x \to +\infty} f(x) = y_0$ hoặc $\lim\limits_{x \to -\infty} f(x) = y_0$.</li>
+                    <li><b>Tiệm cận đứng (TCĐ):</b> Đường thẳng $x = x_0$ là TCĐ của đồ thị nếu ít nhất một trong các giới hạn $\lim\limits_{x \to x_0^+} f(x)$, $\lim\limits_{x \to x_0^-} f(x)$ bằng $+\infty$ hoặc $-\infty$.</li>
+                    <li><b>Tiệm cận xiên (TCX):</b> Đường thẳng $y = ax + b$ ($a \neq 0$) là TCX của đồ thị nếu $\lim\limits_{x \to +\infty} [f(x) - (ax + b)] = 0$ hoặc $\lim\limits_{x \to -\infty} [f(x) - (ax + b)] = 0$.</li>
+                </ul>
+
+                <div class="tip-box tip-green">
+                    <span class="tip-title">💡 Công thức giải nhanh Tiệm cận của hai hàm phân thức thường gặp:</span>
+                    • <b>Hàm bậc nhất trên bậc nhất $y = \dfrac{ax + b}{cx + d}$ ($c \neq 0, ad - bc \neq 0$):</b><br>
+                      &nbsp;&nbsp;+ Tiệm cận đứng: $x = -\dfrac{d}{c}$ (nghiệm của mẫu).<br>
+                      &nbsp;&nbsp;+ Tiệm cận ngang: $y = \dfrac{a}{c}$ (tỉ số hệ số bậc cao nhất).<br>
+                      &nbsp;&nbsp;+ Giao điểm hai đường tiệm cận $I\left(-\dfrac{d}{c}; \dfrac{a}{c}\right)$ là <b>tâm đối xứng</b> của đồ thị.<br>
+                    • <b>Hàm bậc hai trên bậc nhất $y = \dfrac{ax^2 + bx + c}{mx + n}$ ($a \neq 0, m \neq 0$, tử không chia hết cho mẫu):</b><br>
+                      &nbsp;&nbsp;+ Chia đa thức tử cho mẫu được $y = px + q + \dfrac{r}{mx + n}$ ($r \neq 0$).<br>
+                      &nbsp;&nbsp;+ Tiệm cận đứng: $x = -\dfrac{n}{m}$ và <b>Tiệm cận xiên</b>: $y = px + q$.
+                </div>
+            </div>
+            <div class="theory-illu">
+                <canvas id="canvasT3" width="270" height="270"></canvas>
+                <div class="mini-3d-bar">
+                    <button class="mini-btn" id="btnRotT3" onclick="toggleMiniAnim(2, 'btnRotT3')">▶️ Chạy điểm M</button>
+                    <button class="mini-btn" onclick="resetMiniGraph(2)">📐 Khung chuẩn</button>
+                </div>
+                <span>Đồ thị $y = \dfrac{x-1}{x+1}$ với TCĐ $x = -1$, TCN $y = 1$ và tâm đối xứng $I(-1; 1)$</span>
+            </div>
+        </div>
+
+        <!-- ================= MỤC 4: KHẢO SÁT SỰ BIẾN THIÊN VÀ VẼ ĐỒ THỊ HÀM SỐ ================= -->
+        <div class="theory-section">
+            <div class="theory-content">
+                <h3>4. Nhận Diện Dấu Hệ Số Từ Đồ Thị Hàm Số</h3>
+                <p><b>a) Nhận diện hệ số của hàm bậc ba $y = ax^3 + bx^2 + cx + d$ ($a \neq 0$):</b></p>
+                <ul class="theory-list">
+                    <li><b>Dấu của $a$:</b> Nhìn nhánh cuối cùng bên phải của đồ thị (khi $x \to +\infty$): đi lên thì $a > 0$, đi xuống thì $a < 0$.</li>
+                    <li><b>Dấu của $d$:</b> Nhìn giao điểm của đồ thị với trục tung $Oy$ có tọa độ $(0; d)$.</li>
+                    <li><b>Dấu của $b$ và $c$:</b> Dựa vào hai điểm cực trị $x_1, x_2$ (nghiệm của $3ax^2 + 2bx + c = 0$):
+                        $$x_1 + x_2 = -\dfrac{2b}{3a}, \qquad x_1 x_2 = \dfrac{c}{3a}$$
+                        Hoành độ tâm đối xứng (điểm uốn) của đồ thị là $x_I = -\dfrac{b}{3a} = \dfrac{x_1 + x_2}{2}$.
+                    </li>
+                </ul>
+
+                <div class="tip-box tip-yellow">
+                    <span class="tip-title">🌟 Nhận diện hệ số hàm phân thức $y = \dfrac{ax + b}{cx + d}$:</span>
+                    • <b>Tiệm cận đứng</b> $x = -\dfrac{d}{c}$ (so với gốc $O$ để biết dấu của $c, d$).<br>
+                    • <b>Tiệm cận ngang</b> $y = \dfrac{a}{c}$ (so với gốc $O$ để biết dấu của $a, c$).<br>
+                    • <b>Giao với trục tung $Oy$</b> tại $\left(0; \dfrac{b}{d}\right)$ và <b>giao với trục hoành $Ox$</b> tại $\left(-\dfrac{b}{a}; 0\right)$.<br>
+                    • <b>Chiều biến thiên:</b> Đồ thị đi lên trên từng khoảng xác định thì $ad - bc > 0$, đi xuống thì $ad - bc < 0$.
+                </div>
+            </div>
+            <div class="theory-illu">
+                <canvas id="canvasT4" width="270" height="270"></canvas>
+                <div class="mini-3d-bar">
+                    <button class="mini-btn" id="btnRotT4" onclick="toggleMiniAnim(3, 'btnRotT4')">▶️ Chạy điểm M</button>
+                    <button class="mini-btn" onclick="resetMiniGraph(3)">📐 Khung chuẩn</button>
+                </div>
+                <span>Đồ thị $y = \dfrac{x^2-x+1}{x-1} = x + \dfrac{1}{x-1}$ với TCĐ $x = 1$ và TCX $y = x$</span>
+            </div>
+        </div>
+
+        <!-- ================= MỤC 5: ỨNG DỤNG ĐẠO HÀM TRONG KINH TẾ & THỰC TIỄN ================= -->
+        <div class="theory-section">
+            <div class="theory-content" style="flex: 1 1 100%; padding-right: 0;">
+                <h3>5. Tổng Hợp Các Bài Toán Tối Ưu Hóa Thực Tiễn & Kinh Tế</h3>
+                <div class="tip-box tip-red" style="margin-bottom: 0;">
+                    <span class="tip-title">🌍 Các mô hình toán học thực tiễn trọng tâm trong Chương I:</span>
+                    • <b>Bài toán chuyển động (Vận tốc - Gia tốc):</b> Nếu phương trình chuyển động của chất điểm là $s = s(t)$ thì vận tốc tức thời tại thời điểm $t$ là $v(t) = s'(t)$ và gia tốc tức thời là $a(t) = v'(t) = s''(t)$. Vận tốc lớn nhất đạt được tại cực trị của hàm $v(t)$ (khi $a(t) = 0$).<br>
+                    • <b>Bài toán Kinh tế (Doanh thu - Chi phí - Lợi nhuận):</b> Gọi $x$ là số lượng sản phẩm bán ra:<br>
+                      &nbsp;&nbsp;+ Hàm chi phí: $C(x)$; Chi phí trung bình cho 1 đơn vị sản phẩm: $\overline{C}(x) = \dfrac{C(x)}{x}$.<br>
+                      &nbsp;&nbsp;+ Hàm doanh thu: $R(x) = x \cdot p(x)$ (với $p(x)$ là hàm giá bán theo sản lượng cầu $x$).<br>
+                      &nbsp;&nbsp;+ Hàm lợi nhuận: $P(x) = R(x) - C(x)$. Để lợi nhuận tối đa, ta tìm $\max P(x)$ (thường đạt tại điểm $P'(x) = 0 \Longleftrightarrow R'(x) = C'(x)$).<br>
+                    • <b>Bài toán Hình học tối ưu (Cắt hộp không nắp):</b> Từ tấm bìa hình vuông cạnh $a$, cắt 4 góc 4 hình vuông cạnh $x$ ($0 < x < \frac{a}{2}$) rồi gấp thành hình hộp chữ nhật không nắp có thể tích $V(x) = x(a - 2x)^2$. Thể tích hộp lớn nhất đạt được khi $x = \dfrac{a}{6}$.
+                </div>
+            </div>
+        </div>
+ 
+    </div>
+ 
+    <div id="output" class="box" style="display: none;">
+        <h2 style="text-align: center; margin-bottom: 15px;">ĐỀ KIỂM TRA ĐÁNH GIÁ NĂNG LỰC - ÔN TẬP CHƯƠNG I: ỨNG DỤNG ĐẠO HÀM</h2>
+        <div class="scroll-area" id="test-content"></div>
+        <div style="text-align: center; margin-top: 20px;">
+            <button class="submit-btn" onclick="checkAnswers()" id="submitBtn" style="display:none;">NỘP BÀI & CHẤM ĐIỂM</button>
+        </div>
+        <h3 id="score-display" style="text-align: center; color: #0056b3; margin-top: 15px;"></h3>
+        <div id="advice-display" class="advice-box"></div>
+    </div>
+ 
+    <script>
+        // ================= HỆ THỐNG ĐỒ HỌA 2D SƯ PHẠM TƯƠNG TÁC =================
+        const graphModels = [
+            {
+                // Mode 0: y = x^3 - 3x
+                f: (x) => x * x * x - 3 * x,
+                df: (x) => 3 * x * x - 3,
+                va: null,
+                ha: null,
+                oa: null,
+                symCenter: { x: 0, y: 0, label: "I(0;0)" },
+                specialPts: [
+                    { x: -1, y: 2, label: "CĐ(-1;2)", color: "#dc3545", dx: -52, dy: -8 },
+                    { x: 1, y: -2, label: "CT(1;-2)", color: "#dc3545", dx: 8, dy: 14 }
+                ],
+                domainInterval: null,
+                defaultScale: 42
+            },
+            {
+                // Mode 1: y = (x - 1) / (x + 1)
+                f: (x) => (x - 1) / (x + 1),
+                df: (x) => 2 / ((x + 1) * (x + 1)),
+                va: -1,
+                ha: 1,
+                oa: null,
+                symCenter: { x: -1, y: 1, label: "I(-1;1)" },
+                specialPts: [
+                    { x: 0, y: -1, label: "(0;-1)", color: "#198754", dx: 8, dy: 12 },
+                    { x: 1, y: 0, label: "(1;0)", color: "#198754", dx: 6, dy: -6 }
+                ],
+                domainInterval: null,
+                defaultScale: 42
+            },
+            {
+                // Mode 2: y = (x^2 - x + 1) / (x - 1) = x + 1/(x - 1)
+                f: (x) => x + 1 / (x - 1),
+                df: (x) => 1 - 1 / ((x - 1) * (x - 1)),
+                va: 1,
+                ha: null,
+                oa: { a: 1, b: 0, label: "y = x" },
+                symCenter: { x: 1, y: 1, label: "I(1;1)" },
+                specialPts: [
+                    { x: 0, y: -1, label: "CĐ(0;-1)", color: "#dc3545", dx: -56, dy: 14 },
+                    { x: 2, y: 3, label: "CT(2;3)", color: "#dc3545", dx: 8, dy: -8 }
+                ],
+                domainInterval: null,
+                defaultScale: 36
+            },
+            {
+                // Mode 3: GTLN - GTNN của y = -x^3 + 3x + 1 trên [-2; 2]
+                f: (x) => -x * x * x + 3 * x + 1,
+                df: (x) => -3 * x * x + 3,
+                va: null,
+                ha: null,
+                oa: null,
+                symCenter: { x: 0, y: 1, label: "I(0;1)" },
+                specialPts: [
+                    { x: -1, y: -1, label: "Min(-1;-1)", color: "#dc3545", dx: -64, dy: 15 },
+                    { x: 1, y: 3, label: "Max(1;3)", color: "#28a745", dx: 8, dy: -6 },
+                    { x: -2, y: 3, label: "(-2;3)", color: "#28a745", dx: -42, dy: -6 },
+                    { x: 2, y: -1, label: "(2;-1)", color: "#dc3545", dx: 8, dy: 14 }
+                ],
+                domainInterval: [-2, 2],
+                defaultScale: 42
+            }
+        ];
+
+        function drawGraphScene(ctx, width, height, modeIdx, scale, offsetX, offsetY, animT, isMini = false) {
+            ctx.clearRect(0, 0, width, height);
+            let m = graphModels[modeIdx];
+            let cx = width / 2 + offsetX;
+            let cy = height / 2 + offsetY;
+
+            const toScreenX = (x) => cx + x * scale;
+            const toScreenY = (y) => cy - y * scale;
+            const toWorldX = (px) => (px - cx) / scale;
+
+            // 1. Vẽ lưới tọa độ mờ
+            ctx.save();
+            ctx.strokeStyle = "#f0f3f6";
+            ctx.lineWidth = 1;
+            let xMin = Math.floor(toWorldX(0)) - 1;
+            let xMax = Math.ceil(toWorldX(width)) + 1;
+            let yMin = Math.floor((cy - height) / scale) - 1;
+            let yMax = Math.ceil(cy / scale) + 1;
+
+            for (let gx = xMin; gx <= xMax; gx++) {
+                let sx = toScreenX(gx);
+                ctx.beginPath(); ctx.moveTo(sx, 0); ctx.lineTo(sx, height); ctx.stroke();
+            }
+            for (let gy = yMin; gy <= yMax; gy++) {
+                let sy = toScreenY(gy);
+                ctx.beginPath(); ctx.moveTo(0, sy); ctx.lineTo(width, sy); ctx.stroke();
+            }
+            ctx.restore();
+
+            // 2. Vẽ miền đóng [-2; 2] nếu ở Mode 3
+            if (m.domainInterval) {
+                let sx1 = toScreenX(m.domainInterval[0]);
+                let sx2 = toScreenX(m.domainInterval[1]);
+                ctx.save();
+                ctx.fillStyle = "rgba(40, 167, 69, 0.06)";
+                ctx.fillRect(sx1, 0, sx2 - sx1, height);
+                ctx.restore();
+            }
+
+            // 3. Vẽ hệ trục tọa độ Ox, Oy
+            ctx.save();
+            ctx.strokeStyle = "#333";
+            ctx.fillStyle = "#333";
+            ctx.lineWidth = 1.6;
+            // Trục Ox
+            ctx.beginPath(); ctx.moveTo(0, cy); ctx.lineTo(width - 4, cy); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(width - 2, cy); ctx.lineTo(width - 10, cy - 4); ctx.lineTo(width - 10, cy + 4); ctx.closePath(); ctx.fill();
+            // Trục Oy
+            ctx.beginPath(); ctx.moveTo(cx, height); ctx.lineTo(cx, 4); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(cx, 2); ctx.lineTo(cx - 4, 10); ctx.lineTo(cx + 4, 10); ctx.closePath(); ctx.fill();
+
+            ctx.font = isMini ? "bold 11px 'Segoe UI'" : "bold 13px 'Segoe UI'";
+            ctx.fillText("x", width - 14, cy + 16);
+            ctx.fillText("y", cx + 8, 14);
+            ctx.fillText("O", cx - 14, cy + 15);
+            ctx.restore();
+
+            // 4. Vẽ các đường tiệm cận (nét đứt đỏ)
+            ctx.save();
+            ctx.strokeStyle = "#dc3545";
+            ctx.lineWidth = 1.6;
+            ctx.setLineDash([6, 4]);
+            if (m.va !== null) {
+                let vx = toScreenX(m.va);
+                ctx.beginPath(); ctx.moveTo(vx, 0); ctx.lineTo(vx, height); ctx.stroke();
+                if (!isMini) {
+                    ctx.fillStyle = "#dc3545";
+                    ctx.font = "bold 12px 'Segoe UI'";
+                    ctx.fillText(`TCĐ: x = ${m.va}`, vx + 6, 22);
+                }
+            }
+            if (m.ha !== null) {
+                let hy = toScreenY(m.ha);
+                ctx.beginPath(); ctx.moveTo(0, hy); ctx.lineTo(width, hy); ctx.stroke();
+                if (!isMini) {
+                    ctx.fillStyle = "#dc3545";
+                    ctx.font = "bold 12px 'Segoe UI'";
+                    ctx.fillText(`TCN: y = ${m.ha}`, 12, hy - 6);
+                }
+            }
+            if (m.oa !== null) {
+                let wx1 = toWorldX(0), wx2 = toWorldX(width);
+                let wy1 = m.oa.a * wx1 + m.oa.b;
+                let wy2 = m.oa.a * wx2 + m.oa.b;
+                ctx.beginPath();
+                ctx.moveTo(toScreenX(wx1), toScreenY(wy1));
+                ctx.lineTo(toScreenX(wx2), toScreenY(wy2));
+                ctx.stroke();
+                if (!isMini) {
+                    ctx.fillStyle = "#dc3545";
+                    ctx.font = "bold 12px 'Segoe UI'";
+                    ctx.fillText(`TCX: ${m.oa.label}`, toScreenX(-2.2), toScreenY(-2.2) - 8);
+                }
+            }
+            ctx.restore();
+
+            // 5. Vẽ đồ thị hàm số y = f(x)
+            ctx.save();
+            ctx.strokeStyle = "#0056b3";
+            ctx.lineWidth = isMini ? 2.2 : 2.6;
+            ctx.beginPath();
+            let drawing = false;
+            for (let px = 0; px <= width; px += 1.5) {
+                let wx = toWorldX(px);
+                if (m.domainInterval && (wx < m.domainInterval[0] || wx > m.domainInterval[1])) {
+                    drawing = false;
+                    continue;
+                }
+                if (m.va !== null && Math.abs(wx - m.va) < 0.04) {
+                    drawing = false;
+                    continue;
+                }
+                let wy = m.f(wx);
+                let py = toScreenY(wy);
+                if (py < -200 || py > height + 200 || isNaN(py)) {
+                    drawing = false;
+                    continue;
+                }
+                if (!drawing) {
+                    ctx.moveTo(px, py);
+                    drawing = true;
+                } else {
+                    ctx.lineTo(px, py);
+                }
+            }
+            ctx.stroke();
+            ctx.restore();
+
+            // 6. Vẽ các đường gióng & điểm đặc biệt (Cực trị, Tâm đối xứng)
+            m.specialPts.forEach(pt => {
+                let sx = toScreenX(pt.x);
+                let sy = toScreenY(pt.y);
+                // Đường gióng nét đứt tới các trục
+                ctx.save();
+                ctx.strokeStyle = "#888";
+                ctx.lineWidth = 1;
+                ctx.setLineDash([3, 3]);
+                ctx.beginPath();
+                ctx.moveTo(sx, cy); ctx.lineTo(sx, sy);
+                ctx.lineTo(cx, sy);
+                ctx.stroke();
+                ctx.restore();
+
+                // Chấm điểm
+                ctx.save();
+                ctx.fillStyle = pt.color;
+                ctx.beginPath();
+                ctx.arc(sx, sy, isMini ? 3.5 : 4.2, 0, Math.PI * 2);
+                ctx.fill();
+                if (!isMini || pt.label.startsWith("C") || pt.label.startsWith("M")) {
+                    ctx.font = isMini ? "bold 10.5px 'Segoe UI'" : "bold 12px 'Segoe UI'";
+                    ctx.fillText(pt.label, sx + pt.dx, sy + pt.dy);
+                }
+                ctx.restore();
+            });
+
+            if (m.symCenter) {
+                let ix = toScreenX(m.symCenter.x);
+                let iy = toScreenY(m.symCenter.y);
+                ctx.save();
+                ctx.fillStyle = "#fd7e14";
+                ctx.beginPath();
+                ctx.arc(ix, iy, 3.8, 0, Math.PI * 2);
+                ctx.fill();
+                if (!isMini) {
+                    ctx.font = "bold 11.5px 'Segoe UI'";
+                    ctx.fillText(m.symCenter.label, ix + 6, iy + 14);
+                }
+                ctx.restore();
+            }
+
+            // 7. Vẽ điểm động M(x0; y0) và tiếp tuyến tại M
+            let x0 = 2.1 * Math.sin(animT);
+            if (m.va !== null && Math.abs(x0 - m.va) < 0.22) {
+                x0 = m.va + 0.35;
+            }
+            if (m.domainInterval) {
+                x0 = 1.95 * Math.sin(animT);
+            }
+            let y0 = m.f(x0);
+            let kSlope = m.df(x0);
+            let mx = toScreenX(x0);
+            let my = toScreenY(y0);
+
+            if (my >= -50 && my <= height + 50) {
+                // Đoạn tiếp tuyến tại M
+                let dxTang = 1.25;
+                let tx1 = toScreenX(x0 - dxTang);
+                let ty1 = toScreenY(y0 - kSlope * dxTang);
+                let tx2 = toScreenX(x0 + dxTang);
+                let ty2 = toScreenY(y0 + kSlope * dxTang);
+
+                ctx.save();
+                ctx.strokeStyle = "#28a745";
+                ctx.lineWidth = 2.0;
+                ctx.beginPath();
+                ctx.moveTo(tx1, ty1);
+                ctx.lineTo(tx2, ty2);
+                ctx.stroke();
+
+                ctx.fillStyle = "#28a745";
+                ctx.beginPath();
+                ctx.arc(mx, my, 4.8, 0, Math.PI * 2);
+                ctx.fill();
+
+                if (!isMini) {
+                    ctx.font = "bold 12px 'Segoe UI'";
+                    let signStr = kSlope > 0.05 ? "(y' > 0: ĐB)" : (kSlope < -0.05 ? "(y' < 0: NB)" : "(y' ≈ 0)");
+                    ctx.fillText(`M(${x0.toFixed(1)}; ${y0.toFixed(1)}) ${signStr}`, mx + 8, my - 8);
+                }
+                ctx.restore();
+            }
+        }
+
+        // --- ĐIỀU KHIỂN MÔ HÌNH ĐỒ THỊ TRUNG TÂM ---
+        let mainSim = {
+            mode: 0,
+            scale: 42,
+            offsetX: 0,
+            offsetY: 0,
+            animT: 0.65,
+            autoAnim: false,
+            dragging: false,
+            lastX: 0,
+            lastY: 0
+        };
+
+        const modeCaptions = [
+            "Hàm số bậc ba $y = x^3 - 3x$: Cực đại tại $(-1; 2)$, Cực tiểu tại $(1; -2)$, Tâm đối xứng $I(0; 0)$",
+            "Hàm phân thức $y = \\dfrac{x - 1}{x + 1}$: Tiệm cận đứng $x = -1$, Tiệm cận ngang $y = 1$, luôn đồng biến trên từng khoảng xác định",
+            "Hàm phân thức $y = \\dfrac{x^2 - x + 1}{x - 1} = x + \\dfrac{1}{x - 1}$: Tiệm cận đứng $x = 1$, Tiệm cận xiên $y = x$, CĐ $(0;-1)$, CT $(2;3)$",
+            "GTLN & GTNN của $y = -x^3 + 3x + 1$ trên đoạn $[-2; 2]$: $\\max\\limits_{[-2;2]} y = 3$ tại $x=1, x=-2$ và $\\min\\limits_{[-2;2]} y = -1$ tại $x=-1, x=2$"
+        ];
+
+        function setMainMode(m) {
+            mainSim.mode = m;
+            mainSim.scale = graphModels[m].defaultScale;
+            mainSim.offsetX = 0;
+            mainSim.offsetY = 0;
+            for (let i = 0; i < 4; i++) {
+                let btn = document.getElementById('modeBtn' + i);
+                if (i === m) btn.classList.add('active');
+                else btn.classList.remove('active');
+            }
+            let cap = document.getElementById('mainGraphCaption');
+            cap.innerHTML = modeCaptions[m];
+            if (window.MathJax && MathJax.typesetPromise) {
+                MathJax.typesetPromise([cap]).catch(()=>{});
+            }
+        }
+
+        function updateMainAnimBtn() {
+            let btn = document.getElementById('btnMainAutoRot');
+            if (!btn) return;
+            if (mainSim.autoAnim) {
+                btn.innerHTML = "⏸️ Đang chạy điểm M & Tiếp tuyến (Bấm để dừng)";
+                btn.classList.add('running');
+            } else {
+                btn.innerHTML = "▶️ Bật chạy điểm M(x₀; y₀) & Tiếp tuyến";
+                btn.classList.remove('running');
+            }
+        }
+
+        function toggleMainAnim() {
+            mainSim.autoAnim = !mainSim.autoAnim;
+            updateMainAnimBtn();
+        }
+
+        function resetMainView() {
+            mainSim.offsetX = 0;
+            mainSim.offsetY = 0;
+            mainSim.scale = graphModels[mainSim.mode].defaultScale;
+        }
+
+        function zoomMainGraph(factor) {
+            mainSim.scale = Math.max(20, Math.min(90, mainSim.scale * factor));
+        }
+
+        function stepPointM(delta) {
+            mainSim.autoAnim = false;
+            updateMainAnimBtn();
+            mainSim.animT += delta;
+        }
+
+        // --- 4 KHUNG ĐỒ THỊ MINI Ở 4 MỤC LÝ THUYẾT ---
+        let miniSims = [
+            { id: 'canvasT1', mode: 0, scale: 28, offsetX: 0, offsetY: 0, animT: 0.6, auto: false, dragging: false, lastX: 0, lastY: 0 },
+            { id: 'canvasT2', mode: 3, scale: 28, offsetX: 0, offsetY: 12, animT: 0.4, auto: false, dragging: false, lastX: 0, lastY: 0 },
+            { id: 'canvasT3', mode: 1, scale: 28, offsetX: 12, offsetY: 12, animT: 0.5, auto: false, dragging: false, lastX: 0, lastY: 0 },
+            { id: 'canvasT4', mode: 2, scale: 24, offsetX: -12, offsetY: 15, animT: 0.7, auto: false, dragging: false, lastX: 0, lastY: 0 }
+        ];
+
+        function toggleMiniAnim(idx, btnId) {
+            miniSims[idx].auto = !miniSims[idx].auto;
+            let btn = document.getElementById(btnId);
+            if (miniSims[idx].auto) {
+                btn.classList.add('active');
+                btn.innerText = "⏸️ Dừng chạy";
+            } else {
+                btn.classList.remove('active');
+                btn.innerText = "▶️ Chạy điểm M";
+            }
+        }
+
+        function resetMiniGraph(idx) {
+            miniSims[idx].offsetX = idx === 2 ? 12 : (idx === 3 ? -12 : 0);
+            miniSims[idx].offsetY = idx === 0 ? 0 : 12;
+        }
+
+        function bindGraphDrag(canvas, stateObj) {
+            const getPos = (e) => {
+                if (e.touches && e.touches.length > 0) return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+                return { x: e.clientX, y: e.clientY };
+            };
+            const start = (e) => {
+                stateObj.dragging = true;
+                let pos = getPos(e);
+                stateObj.lastX = pos.x;
+                stateObj.lastY = pos.y;
+            };
+            const move = (e) => {
+                if (!stateObj.dragging) return;
+                if (e.cancelable) e.preventDefault();
+                let pos = getPos(e);
+                stateObj.offsetX += (pos.x - stateObj.lastX);
+                stateObj.offsetY += (pos.y - stateObj.lastY);
+                stateObj.lastX = pos.x;
+                stateObj.lastY = pos.y;
+            };
+            const end = () => { stateObj.dragging = false; };
+
+            canvas.addEventListener('mousedown', start);
+            window.addEventListener('mousemove', move);
+            window.addEventListener('mouseup', end);
+            canvas.addEventListener('touchstart', start, { passive: false });
+            canvas.addEventListener('touchmove', move, { passive: false });
+            canvas.addEventListener('touchend', end);
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            let mainC = document.getElementById('mainGraphCanvas');
+            if (mainC) bindGraphDrag(mainC, mainSim);
+
+            miniSims.forEach(sim => {
+                let c = document.getElementById(sim.id);
+                if (c) bindGraphDrag(c, sim);
+            });
+
+            function animateLoop() {
+                let mainC = document.getElementById('mainGraphCanvas');
+                if (mainC) {
+                    if (mainSim.autoAnim) mainSim.animT += 0.018;
+                    let ctx = mainC.getContext('2d');
+                    drawGraphScene(ctx, mainC.width, mainC.height, mainSim.mode, mainSim.scale, mainSim.offsetX, mainSim.offsetY, mainSim.animT, false);
+                }
+
+                miniSims.forEach(sim => {
+                    let c = document.getElementById(sim.id);
+                    if (c) {
+                        if (sim.auto) sim.animT += 0.02;
+                        let ctx = c.getContext('2d');
+                        drawGraphScene(ctx, c.width, c.height, sim.mode, sim.scale, sim.offsetX, sim.offsetY, sim.animT, true);
+                    }
+                });
+
+                requestAnimationFrame(animateLoop);
+            }
+            animateLoop();
+        });
+
+        // --- HỆ THỐNG ĐIỀU KHIỂN GIAO DIỆN ---
+        let currentFontSize = 14; let currentIlluSize = 270; let isExpanded = false;
+        function changeFontSize(delta) { currentFontSize += delta; if (currentFontSize < 10) currentFontSize = 10; if (currentFontSize > 32) currentFontSize = 32; document.documentElement.style.setProperty('--font-size', currentFontSize + 'pt'); document.getElementById('font-size-display').innerText = currentFontSize + 'pt'; }
+        function changeIlluSize(delta) { currentIlluSize += delta; if (currentIlluSize < 140) currentIlluSize = 550; document.documentElement.style.setProperty('--illu-size', currentIlluSize + 'px'); document.getElementById('illu-size-display').innerText = currentIlluSize + 'px'; }
+        function toggleWidth() { isExpanded = !isExpanded; document.body.style.maxWidth = isExpanded ? '100%' : '980px'; }
+        function toggleFullScreen() { if (!document.fullscreenElement) { document.documentElement.requestFullscreen().catch(err => { alert(err.message); }); } else { if (document.exitFullscreen) { document.exitFullscreen(); } } }
+ 
+        // --- BỘ NHỚ LÕI & HÀM BỔ TRỢ SINH ĐỀ ---
+        let questionCounter = 1;
+        function shuffle(array) { for (let i = array.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [array[i], array[j]] = [array[j], array[i]]; } return array; }
+        function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+        function randNonZero(min, max) { let v = 0; while (v === 0) v = randInt(min, max); return v; }
+
+        function formatCubic(a, b, c, d) {
+            let s = "";
+            if (a === 1) s += "x^3";
+            else if (a === -1) s += "-x^3";
+            else s += `${a}x^3`;
+
+            if (b !== 0) {
+                let sign = b > 0 ? " + " : " - ";
+                let absB = Math.abs(b);
+                s += sign + (absB === 1 ? "x^2" : `${absB}x^2`);
+            }
+            if (c !== 0) {
+                let sign = c > 0 ? " + " : " - ";
+                let absC = Math.abs(c);
+                s += sign + (absC === 1 ? "x" : `${absC}x`);
+            }
+            if (d !== 0) {
+                let sign = d > 0 ? " + " : " - ";
+                s += sign + Math.abs(d);
+            }
+            return s;
+        }
+
+        // ================= SINH CÂU HỎI TRẮC NGHIỆM 4 ĐÁP ÁN (DẠNG 1) =================
+        function genT1_DonDieuBacBa() {
+            // y' = 3(x - x1)(x - x2) với x1 + x2 chẵn để hệ số nguyên
+            let x1 = randInt(-3, 0);
+            let x2 = x1 + 2 * randInt(1, 2);
+            let signA = Math.random() > 0.5 ? 1 : -1;
+            let a = signA;
+            let b = Math.round(-1.5 * signA * (x1 + x2));
+            let c = 3 * signA * x1 * x2;
+            let d = randInt(-5, 5);
+            let poly = formatCubic(a, b, c, d);
+
+            let askType = signA === 1 ? "nghịch biến" : "đồng biến";
+            let qText = `Hàm số $y = ${poly}$ ${askType} trên khoảng nào dưới đây?`;
+            let ans = `$(${x1};\\; ${x2})$`;
+            let w1 = `$(-\\infty;\\; ${x1})$`;
+            let w2 = `$(${x2};\\; +\\infty)$`;
+            let w3 = `$(${-x2};\\; ${-x1})$`;
+            if (x1 + x2 === 0) w3 = `$(0;\\; ${x2 + 1})$`;
+
+            let opts = shuffle([{t: ans, v: true}, {t: w1, v: false}, {t: w2, v: false}, {t: w3, v: false}]);
+            let html = `<div class="question type1-q"><div><b>Câu ${questionCounter++}:</b> ${qText}</div><ul class="options">`;
+            let labels = ['A', 'B', 'C', 'D'];
+            opts.forEach((opt, idx) => { html += `<li><label><input type="radio" name="q1_${questionCounter}" value="${opt.v}"> <b>${labels[idx]}.</b> ${opt.t}</label></li>`; });
+            return html + `</ul></div>`;
+        }
+
+        function genT1_CucTriBacBa() {
+            let m = randInt(1, 3);
+            let d = randInt(-6, 6);
+            // y = x^3 - 3*m^2*x + d => CĐ tại x = -m, y_CĐ = 2m^3 + d; CT tại x = m, y_CT = -2m^3 + d
+            let poly = formatCubic(1, 0, -3 * m * m, d);
+            let yCD = 2 * m * m * m + d;
+            let yCT = -2 * m * m * m + d;
+            let isAskCD = Math.random() > 0.5;
+            let qText = isAskCD
+                ? `Giá trị cực đại của hàm số $y = ${poly}$ bằng:`
+                : `Giá trị cực tiểu của hàm số $y = ${poly}$ bằng:`;
+            let ans = isAskCD ? `$${yCD}$` : `$${yCT}$`;
+            let w1 = isAskCD ? `$${-m}$` : `$${m}$`;
+            let w2 = isAskCD ? `$${yCT}$` : `$${yCD}$`;
+            let w3 = `$${d}$`;
+
+            let opts = shuffle([{t: ans, v: true}, {t: w1, v: false}, {t: w2, v: false}, {t: w3, v: false}]);
+            let html = `<div class="question type1-q"><div><b>Câu ${questionCounter++}:</b> ${qText}</div><ul class="options">`;
+            let labels = ['A', 'B', 'C', 'D'];
+            opts.forEach((opt, idx) => { html += `<li><label><input type="radio" name="q1_${questionCounter}" value="${opt.v}"> <b>${labels[idx]}.</b> ${opt.t}</label></li>`; });
+            return html + `</ul></div>`;
+        }
+
+        function genT1_TiemCanPhanThucBacNhat() {
+            let a = randNonZero(-5, 6);
+            let b = randNonZero(-7, 7);
+            let d = randNonZero(-6, 6);
+            if (a * d - b === 0) b += 1;
+            let numStr = (a === 1 ? "x" : (a === -1 ? "-x" : `${a}x`)) + (b > 0 ? ` + ${b}` : ` - ${Math.abs(b)}`);
+            let denStr = `x` + (d > 0 ? ` + ${d}` : ` - ${Math.abs(d)}`);
+            let askVA = Math.random() > 0.5;
+            let qText = askVA
+                ? `Tiệm cận đứng của đồ thị hàm số $y = \\dfrac{${numStr}}{${denStr}}$ là đường thẳng có phương trình:`
+                : `Tiệm cận ngang của đồ thị hàm số $y = \\dfrac{${numStr}}{${denStr}}$ là đường thẳng có phương trình:`;
+            let ans = askVA ? `$x = ${-d}$` : `$y = ${a}$`;
+            let w1 = askVA ? `$x = ${d}$` : `$y = ${-d}$`;
+            let w2 = askVA ? `$y = ${-d}$` : `$x = ${a}$`;
+            let w3 = askVA ? `$x = ${a}$` : `$y = ${b}$`;
+
+            let opts = shuffle([{t: ans, v: true}, {t: w1, v: false}, {t: w2, v: false}, {t: w3, v: false}]);
+            let html = `<div class="question type1-q"><div><b>Câu ${questionCounter++}:</b> ${qText}</div><ul class="options">`;
+            let labels = ['A', 'B', 'C', 'D'];
+            opts.forEach((opt, idx) => { html += `<li><label><input type="radio" name="q1_${questionCounter}" value="${opt.v}"> <b>${labels[idx]}.</b> ${opt.t}</label></li>`; });
+            return html + `</ul></div>`;
+        }
+
+        function genT1_TiemCanXien() {
+            let p = randInt(1, 4);
+            let q = randNonZero(-5, 5);
+            let m = randNonZero(-4, 4);
+            let r = randNonZero(-5, 5);
+            let pxStr = p === 1 ? "x" : `${p}x`;
+            let pqStr = pxStr + (q > 0 ? ` + ${q}` : ` - ${Math.abs(q)}`);
+            let denStr = `x` + (m > 0 ? ` - ${m}` : ` + ${Math.abs(m)}`);
+            let signR = r > 0 ? "+" : "-";
+            let qText = `Đường tiệm cận xiên của đồ thị hàm số $y = ${pqStr} ${signR} \\dfrac{${Math.abs(r)}}{${denStr}}$ có phương trình là:`;
+            let ans = `$y = ${pqStr}$`;
+            let w1 = `$y = ${pxStr}` + (q > 0 ? ` - ${q}$` : ` + ${Math.abs(q)}$`);
+            let w2 = `$x = ${m}$`;
+            let w3 = `$y = ${p}$`;
+
+            let opts = shuffle([{t: ans, v: true}, {t: w1, v: false}, {t: w2, v: false}, {t: w3, v: false}]);
+            let html = `<div class="question type1-q"><div><b>Câu ${questionCounter++}:</b> ${qText}</div><ul class="options">`;
+            let labels = ['A', 'B', 'C', 'D'];
+            opts.forEach((opt, idx) => { html += `<li><label><input type="radio" name="q1_${questionCounter}" value="${opt.v}"> <b>${labels[idx]}.</b> ${opt.t}</label></li>`; });
+            return html + `</ul></div>`;
+        }
+
+        function genT1_GTLN_GTNN_Doan() {
+            let c = randInt(-4, 5);
+            // y = x^3 - 3x + c trên đoạn [0; 2]: f(0)=c, f(1)=c-2, f(2)=c+2 => Max = c+2, Min = c-2
+            let poly = formatCubic(1, 0, -3, c);
+            let askMax = Math.random() > 0.5;
+            let qText = askMax
+                ? `Giá trị lớn nhất của hàm số $y = ${poly}$ trên đoạn $[0; 2]$ bằng:`
+                : `Giá trị nhỏ nhất của hàm số $y = ${poly}$ trên đoạn $[0; 2]$ bằng:`;
+            let ans = askMax ? `$${c + 2}$` : `$${c - 2}$`;
+            let w1 = askMax ? `$${c - 2}$` : `$${c + 2}$`;
+            let w2 = `$${c}$`;
+            let w3 = askMax ? `$${c + 4}$` : `$${c - 4}$`;
+
+            let opts = shuffle([{t: ans, v: true}, {t: w1, v: false}, {t: w2, v: false}, {t: w3, v: false}]);
+            let html = `<div class="question type1-q"><div><b>Câu ${questionCounter++}:</b> ${qText}</div><ul class="options">`;
+            let labels = ['A', 'B', 'C', 'D'];
+            opts.forEach((opt, idx) => { html += `<li><label><input type="radio" name="q1_${questionCounter}" value="${opt.v}"> <b>${labels[idx]}.</b> ${opt.t}</label></li>`; });
+            return html + `</ul></div>`;
+        }
+
+        function genT1_SoCucTriTuDaoHam() {
+            let a = randInt(1, 3);
+            let b = randInt(-4, -1);
+            let c = randInt(1, 4);
+            let p1 = randInt(1, 2) * 2; // mũ chẵn
+            let qText = `Cho hàm số $y = f(x)$ liên tục trên $\\mathbb{R}$ và có đạo hàm $f'(x) = (x - ${a})^{${p1}}(x + ${Math.abs(b)})(x - ${c})^3$ với mọi $x \\in \\mathbb{R}$. Số điểm cực trị của hàm số $y = f(x)$ là:`;
+            let ans = `$2$`;
+            let w1 = `$3$`;
+            let w2 = `$1$`;
+            let w3 = `$4$`;
+
+            let opts = shuffle([{t: ans, v: true}, {t: w1, v: false}, {t: w2, v: false}, {t: w3, v: false}]);
+            let html = `<div class="question type1-q"><div><b>Câu ${questionCounter++}:</b> ${qText}</div><ul class="options">`;
+            let labels = ['A', 'B', 'C', 'D'];
+            opts.forEach((opt, idx) => { html += `<li><label><input type="radio" name="q1_${questionCounter}" value="${opt.v}"> <b>${labels[idx]}.</b> ${opt.t}</label></li>`; });
+            return html + `</ul></div>`;
+        }
+
+        // ================= SINH CÂU HỎI TRẮC NGHIỆM ĐÚNG/SAI (DẠNG 2) =================
+        function genT2_KhaoSatHamBacBa() {
+            let d = randInt(1, 5);
+            // y = x^3 - 3x^2 + d => y' = 3x^2 - 6x = 0 <=> x=0 (y=d) hoặc x=2 (y=d-4). Tâm ĐX: I(1; d-2)
+            let html = `<div class="question type2-q"><div><b>Câu ${questionCounter++}:</b> Cho hàm số bậc ba $y = f(x) = x^3 - 3x^2 + ${d}$ có đồ thị $(C)$. Xét tính đúng sai của các mệnh đề sau:</div>`;
+            html += `<div class="table-responsive"><table class="tf-table"><tbody>`;
+            let statements = [
+                { s: `Đạo hàm của hàm số đã cho là $f'(x) = 3x^2 - 6x$.`, v: "true" },
+                { s: `Hàm số đồng biến trên khoảng $(0; 2)$.`, v: "false" },
+                { s: `Giá trị cực đại của hàm số bằng $${d}$ và giá trị cực tiểu của hàm số bằng $${d - 4}$.`, v: "true" },
+                { s: `Tâm đối xứng của đồ thị $(C)$ là điểm $I(1;\\; ${d - 2})$.`, v: "true" }
+            ];
+            let labels = ['a', 'b', 'c', 'd'];
+            statements.forEach((stmt, i) => {
+                html += `<tr data-ans="${stmt.v}"><td><b>${labels[i]})</b> ${stmt.s}</td>
+                <td style="width: 100px;"><label><input type="radio" name="q2_${questionCounter}_${i}" value="true"> Đúng</label></td>
+                <td style="width: 100px;"><label><input type="radio" name="q2_${questionCounter}_${i}" value="false"> Sai</label></td>
+                <td style="width: 140px;"><span class="feedback"></span></td></tr>`;
+            });
+            return html + `</tbody></table></div></div>`;
+        }
+
+        function genT2_PhanThucBacNhat() {
+            let a = randInt(2, 4);
+            let b = randInt(1, 3);
+            let m = randInt(1, 3);
+            // y = (ax + b) / (x - m) => y' = (-am - b) / (x - m)^2 < 0
+            let numVal = -a * m - b;
+            let html = `<div class="question type2-q"><div><b>Câu ${questionCounter++}:</b> Cho hàm số $y = \\dfrac{${a}x + ${b}}{x - ${m}}$ có đồ thị $(C)$. Xét tính đúng sai của các mệnh đề sau:</div>`;
+            html += `<div class="table-responsive"><table class="tf-table"><tbody>`;
+            let statements = [
+                { s: `Ta có $y' = \\dfrac{${numVal}}{(x - ${m})^2} < 0$ với mọi $x \\neq ${m}$, nên hàm số nghịch biến trên từng khoảng $(-\\infty; ${m})$ và $(${m}; +\\infty)$.`, v: "true" },
+                { s: `Đồ thị $(C)$ có tiệm cận đứng là đường thẳng $x = ${m}$ và tiệm cận ngang là đường thẳng $y = ${a}$.`, v: "true" },
+                { s: `Giao điểm hai đường tiệm cận của đồ thị $(C)$ là điểm $I(${a};\\; ${m})$.`, v: "false" },
+                { s: `Trên đoạn $[${m + 1};\\; ${m + 2}]$, giá trị lớn nhất của hàm số bằng $${a * (m + 1) + b}$.`, v: "true" }
+            ];
+            let labels = ['a', 'b', 'c', 'd'];
+            statements.forEach((stmt, i) => {
+                html += `<tr data-ans="${stmt.v}"><td><b>${labels[i]})</b> ${stmt.s}</td>
+                <td style="width: 100px;"><label><input type="radio" name="q2_${questionCounter}_${i}" value="true"> Đúng</label></td>
+                <td style="width: 100px;"><label><input type="radio" name="q2_${questionCounter}_${i}" value="false"> Sai</label></td>
+                <td style="width: 140px;"><span class="feedback"></span></td></tr>`;
+            });
+            return html + `</tbody></table></div></div>`;
+        }
+
+        function genT2_PhanThucBacHaiTrenBacNhat() {
+            let m = randInt(1, 3);
+            // y = x + m + 1/(x - m) => TCĐ x = m, TCX y = x + m. y' = 1 - 1/(x-m)^2 = 0 <=> x = m-1 hoặc x = m+1
+            let html = `<div class="question type2-q"><div><b>Câu ${questionCounter++}:</b> Cho hàm số $y = f(x) = x + ${m} + \\dfrac{1}{x - ${m}}$ có đồ thị $(C)$. Xét tính đúng sai của các mệnh đề sau:</div>`;
+            html += `<div class="table-responsive"><table class="tf-table"><tbody>`;
+            let statements = [
+                { s: `Đồ thị $(C)$ có tiệm cận đứng là đường thẳng $x = ${m}$.`, v: "true" },
+                { s: `Đồ thị $(C)$ có tiệm cận xiên là đường thẳng $y = x + ${m}$.`, v: "true" },
+                { s: `Đạo hàm của hàm số là $f'(x) = 1 + \\dfrac{1}{(x - ${m})^2} > 0, \\forall x \\neq ${m}$.`, v: "false" },
+                { s: `Hàm số đạt cực đại tại $x = ${m - 1}$ và đạt cực tiểu tại $x = ${m + 1}$.`, v: "true" }
+            ];
+            let labels = ['a', 'b', 'c', 'd'];
+            statements.forEach((stmt, i) => {
+                html += `<tr data-ans="${stmt.v}"><td><b>${labels[i]})</b> ${stmt.s}</td>
+                <td style="width: 100px;"><label><input type="radio" name="q2_${questionCounter}_${i}" value="true"> Đúng</label></td>
+                <td style="width: 100px;"><label><input type="radio" name="q2_${questionCounter}_${i}" value="false"> Sai</label></td>
+                <td style="width: 140px;"><span class="feedback"></span></td></tr>`;
+            });
+            return html + `</tbody></table></div></div>`;
+        }
+
+        function genT2_ChuyenDongVatLy() {
+            let k = randInt(2, 4);
+            // s(t) = -t^3 + 3*k*t^2 => v(t) = -3t^2 + 6kt, a(t) = -6t + 6k. v_max tại t = k là 3k^2
+            let bCoef = 3 * k;
+            let vMax = 3 * k * k;
+            let html = `<div class="question type2-q"><div><b>Câu ${questionCounter++}:</b> Một chất điểm chuyển động theo quy luật $s(t) = -t^3 + ${bCoef}t^2$ (với $t \\ge 0$ là thời gian tính bằng giây, $s$ là quãng đường tính bằng mét). Xét tính đúng sai của các mệnh đề sau:</div>`;
+            html += `<div class="table-responsive"><table class="tf-table"><tbody>`;
+            let statements = [
+                { s: `Vận tốc tức thời của chất điểm tại thời điểm $t$ là $v(t) = s'(t) = -3t^2 + ${6 * k}t\\text{ (m/s)}$.`, v: "true" },
+                { s: `Gia tốc tức thời của chất điểm tại thời điểm $t$ là $a(t) = v'(t) = -6t + ${6 * k}\\text{ (m/s}^2\\text{)}$.`, v: "true" },
+                { s: `Vận tốc của chất điểm đạt giá trị lớn nhất tại thời điểm $t = ${k}$ (giây) và vận tốc lớn nhất đó bằng $${vMax}\\text{ (m/s)}$.`, v: "true" },
+                { s: `Chất điểm dừng lại (vận tốc bằng $0$) tại thời điểm $t = ${3 * k}$ (giây).`, v: "false" }
+            ];
+            let labels = ['a', 'b', 'c', 'd'];
+            statements.forEach((stmt, i) => {
+                html += `<tr data-ans="${stmt.v}"><td><b>${labels[i]})</b> ${stmt.s}</td>
+                <td style="width: 100px;"><label><input type="radio" name="q2_${questionCounter}_${i}" value="true"> Đúng</label></td>
+                <td style="width: 100px;"><label><input type="radio" name="q2_${questionCounter}_${i}" value="false"> Sai</label></td>
+                <td style="width: 140px;"><span class="feedback"></span></td></tr>`;
+            });
+            return html + `</tbody></table></div></div>`;
+        }
+
+        // ================= SINH CÂU HỎI TRẢ LỜI NGẮN (DẠNG 3) =================
+        function genT3_TongMaxMin() {
+            let c = randInt(1, 9);
+            // y = x^3 - 3x^2 + c trên [-1; 3]: f(-1)=c-4, f(0)=c, f(2)=c-4, f(3)=c => M = c, m = c-4 => M + m = 2c - 4
+            let ans = 2 * c - 4;
+            let html = `<div class="question type3-q">
+                <div><b>Câu ${questionCounter++}:</b> Gọi $M$ và $m$ lần lượt là giá trị lớn nhất và giá trị nhỏ nhất của hàm số $y = x^3 - 3x^2 + ${c}$ trên đoạn $[-1; 3]$. Tính giá trị của tổng $S = M + m$.</div>
+                <div style="margin-top: 10px; display: flex; align-items: center; gap: 10px;">
+                    <label><b>Trả lời: </b></label>
+                    <input type="text" class="short-ans-input" data-ans="${ans}" placeholder="Nhập số...">
+                    <span class="feedback"></span>
+                </div>
+            </div>`;
+            return html;
+        }
+
+        function genT3_BaiToanCatHop() {
+            let k = randInt(2, 6);
+            let a = 6 * k; // cạnh tấm bìa chia hết cho 6 => x = a/6 = k
+            let ans = k;
+            let html = `<div class="question type3-q">
+                <div><b>Câu ${questionCounter++}:</b> (Bài toán tối ưu thực tiễn) Từ một tấm bìa hình vuông có độ dài cạnh bằng $${a}\\text{ cm}$, người ta cắt bỏ ở bốn góc bốn hình vuông bằng nhau có cạnh bằng $x\\text{ (cm)}$ ($0 < x < ${3 * k}$) rồi gấp lại thành một hình hộp chữ nhật không có nắp. Tìm $x$ (đơn vị: $\\text{cm}$) để hình hộp chữ nhật tạo thành có thể tích lớn nhất.</div>
+                <div style="margin-top: 10px; display: flex; align-items: center; gap: 10px;">
+                    <label><b>Trả lời: </b></label>
+                    <input type="text" class="short-ans-input" data-ans="${ans}" placeholder="Nhập số...">
+                    <span class="feedback"></span>
+                </div>
+            </div>`;
+            return html;
+        }
+
+        function genT3_ToiUuLoiNhuan() {
+            let optX = randInt(20, 45);
+            let bCoef = 2 * optX;
+            let cConst = randInt(10, 50);
+            // P(x) = -x^2 + 2*optX*x - cConst => P'(x) = -2x + 2*optX = 0 <=> x = optX
+            let html = `<div class="question type3-q">
+                <div><b>Câu ${questionCounter++}:</b> Một cơ sở sản xuất nhận thấy rằng nếu sản xuất và bán ra $x$ sản phẩm mỗi ngày ($x \\in \\mathbb{N}^*$) thì hàm lợi nhuận thu được (tính bằng triệu đồng) là $P(x) = -x^2 + ${bCoef}x - ${cConst}$. Hỏi cơ sở đó cần sản xuất bao nhiêu sản phẩm mỗi ngày để thu được lợi nhuận lớn nhất?</div>
+                <div style="margin-top: 10px; display: flex; align-items: center; gap: 10px;">
+                    <label><b>Trả lời: </b></label>
+                    <input type="text" class="short-ans-input" data-ans="${optX}" placeholder="Nhập số...">
+                    <span class="feedback"></span>
+                </div>
+            </div>`;
+            return html;
+        }
+
+        function genT3_GiaoDiemTiemCan() {
+            let a = randNonZero(-5, 6);
+            let d = randNonZero(-6, 6);
+            // y = (ax + 1)/(x - d) => TCĐ x = d, TCN y = a => I(d; a) => x0 + y0 = d + a
+            let b = randInt(1, 5);
+            if (a * (-d) - b === 0) b++;
+            let numStr = (a === 1 ? "x" : (a === -1 ? "-x" : `${a}x`)) + ` + ${b}`;
+            let denStr = `x` + (d > 0 ? ` - ${d}` : ` + ${Math.abs(d)}`);
+            let ans = d + a;
+            let html = `<div class="question type3-q">
+                <div><b>Câu ${questionCounter++}:</b> Gọi $I(x_0; y_0)$ là giao điểm của hai đường tiệm cận của đồ thị hàm số $y = \\dfrac{${numStr}}{${denStr}}$. Tính giá trị của biểu thức $T = x_0 + y_0$.</div>
+                <div style="margin-top: 10px; display: flex; align-items: center; gap: 10px;">
+                    <label><b>Trả lời: </b></label>
+                    <input type="text" class="short-ans-input" data-ans="${ans}" placeholder="Nhập số...">
+                    <span class="feedback"></span>
+                </div>
+            </div>`;
+            return html;
+        }
+
+        // ================= ĐIỀU KHIỂN & CHẤM ĐIỂM =================
+        function generateTest() {
+            try {
+                let n1 = parseInt(document.getElementById('numType1').value);
+                let n2 = parseInt(document.getElementById('numType2').value);
+                let n3 = parseInt(document.getElementById('numType3').value);
+                let testContent = document.getElementById('test-content');
+                document.getElementById('output').style.display = 'block';
+                document.getElementById('submitBtn').style.display = 'inline-block';
+                document.getElementById('score-display').innerHTML = '';
+                document.getElementById('advice-display').style.display = 'none';
+                questionCounter = 1; let finalHtml = ""; 
+ 
+                if (n1 > 0) {
+                    finalHtml += "<h3>Phần I: Câu trắc nghiệm nhiều phương án lựa chọn</h3>";
+                    let t1_funcs = shuffle([genT1_DonDieuBacBa, genT1_CucTriBacBa, genT1_TiemCanPhanThucBacNhat, genT1_TiemCanXien, genT1_GTLN_GTNN_Doan, genT1_SoCucTriTuDaoHam]);
+                    for (let i = 0; i < n1; i++) { finalHtml += t1_funcs[i % t1_funcs.length](); }
+                }
+                if (n2 > 0) {
+                    finalHtml += "<h3 style='margin-top:25px;'>Phần II: Câu trắc nghiệm đúng sai</h3>";
+                    let t2_funcs = shuffle([genT2_KhaoSatHamBacBa, genT2_PhanThucBacNhat, genT2_PhanThucBacHaiTrenBacNhat, genT2_ChuyenDongVatLy]);
+                    for (let i = 0; i < n2; i++) { finalHtml += t2_funcs[i % t2_funcs.length](); }
+                }
+                if (n3 > 0) {
+                    finalHtml += "<h3 style='margin-top:25px;'>Phần III: Câu trắc nghiệm trả lời ngắn</h3>";
+                    let t3_funcs = shuffle([genT3_TongMaxMin, genT3_BaiToanCatHop, genT3_ToiUuLoiNhuan, genT3_GiaoDiemTiemCan]);
+                    for (let i = 0; i < n3; i++) { finalHtml += t3_funcs[i % t3_funcs.length](); }
+                }
+ 
+                testContent.innerHTML = finalHtml; 
+                
+                if (window.MathJax && MathJax.typesetPromise) {
+                    MathJax.typesetClear([testContent]);
+                    MathJax.typesetPromise([testContent]).catch(function (err) { console.error(err.message); });
+                }
+                document.getElementById('output').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            } catch (error) {
+                console.error("Lỗi khi tạo đề:", error);
+                alert("Đã xảy ra lỗi kỹ thuật. Vui lòng nhấn Tạo Đề lại!");
+            }
+        }
+ 
+        function checkAnswers() {
+            let totalScore = 0; let maxScore = 0;
+            document.querySelectorAll('.type1-q').forEach(q => { maxScore++; let radios = q.querySelectorAll('input[type="radio"]'); let answered = false; radios.forEach(radio => { let li = radio.closest('li'); li.classList.remove('is-correct', 'is-incorrect'); li.style.border = "1px solid transparent"; if (radio.checked) { answered = true; if (radio.value === "true") { li.classList.add('is-correct'); totalScore++; } else { li.classList.add('is-incorrect'); } } if (radio.value === "true" && answered) li.style.border = "2px solid var(--correct-border)"; }); });
+            document.querySelectorAll('.type2-q tr[data-ans]').forEach(row => { maxScore++; let correctAns = row.getAttribute('data-ans'), radios = row.querySelectorAll('input[type="radio"]'), feedback = row.querySelector('.feedback'); row.classList.remove('is-correct', 'is-incorrect'); feedback.innerHTML = ""; let checkedVal = null; radios.forEach(r => { if (r.checked) checkedVal = r.value; }); if (checkedVal !== null) { if (checkedVal === correctAns) { row.classList.add('is-correct'); feedback.innerHTML = "✔ ĐÚNG"; feedback.className = "feedback text-correct"; totalScore++; } else { row.classList.add('is-incorrect'); feedback.innerHTML = `✘ SAI (Đ.Án: ${correctAns === "true" ? "Đúng" : "Sai"})`; feedback.className = "feedback text-incorrect"; } } });
+            document.querySelectorAll('.short-ans-input').forEach(input => { maxScore++; let correctAns = input.getAttribute('data-ans'), userAns = input.value.trim().replace(',', '.'), feedback = input.nextElementSibling; input.classList.remove('is-correct', 'is-incorrect'); if (userAns !== "") { if (Number(userAns) === Number(correctAns)) { input.classList.add('is-correct'); feedback.innerHTML = "✔ CHÍNH XÁC"; feedback.className = "feedback text-correct"; totalScore++; } else { input.classList.add('is-incorrect'); feedback.innerHTML = `✘ SAI (Đ.Án: ${correctAns})`; feedback.className = "feedback text-incorrect"; } } });
+            let percent = maxScore === 0 ? 0 : Math.round((totalScore/maxScore)*100);
+            let scoreDisplay = document.getElementById('score-display'); let adviceBox = document.getElementById('advice-display');
+            scoreDisplay.innerHTML = `Bạn đã đạt: ${totalScore} / ${maxScore} điểm (${percent}%)`; adviceBox.style.display = 'block';
+            if (percent < 50) { adviceBox.style.backgroundColor = '#f8d7da'; adviceBox.style.color = '#721c24'; adviceBox.innerHTML = "Kết quả chưa tốt. Hãy ôn tập lại kỹ dấu của đạo hàm y', cách tìm cực trị, GTLN-GTNN và tiệm cận của đồ thị hàm số nhé!"; } else if (percent < 80) { adviceBox.style.backgroundColor = '#fff3cd'; adviceBox.style.color = '#856404'; adviceBox.innerHTML = "Khá tốt! Hãy lưu ý phân biệt điểm cực trị x₀ với giá trị cực trị y₀ và kiểm tra kỹ điều kiện xác định của hàm phân thức."; } else { adviceBox.style.backgroundColor = '#d4edda'; adviceBox.style.color = '#155724'; adviceBox.innerHTML = "Xuất sắc! Bạn đã nắm vững toàn bộ kiến thức Chương I: Ứng dụng đạo hàm để khảo sát và vẽ đồ thị hàm số!"; }
+            document.getElementById('score-display').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    </script>
+</body>
+</html>
